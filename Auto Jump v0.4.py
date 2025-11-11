@@ -7,6 +7,9 @@ import webbrowser
 import sys
 from pynput import keyboard
 
+# DESCRIPTION: Auto-Jump to sell Bubbles
+# VERSIONS: all
+version = "v1.0"
 # ---------- SETTINGS ----------
 JUMP_KEY = "space"
 TOGGLE_KEY = "f2"
@@ -119,3 +122,4 @@ print("▶ Press F2 to Start/Pause | Press F8 to Stop")
 
 update_label()
 root.mainloop()
+
