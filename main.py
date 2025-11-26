@@ -177,8 +177,7 @@ class App(TKMT.ThemedTKinterFrame):
         self.clear_content()
         self.script_panels = []
         
-        
-        # Create scrollable frame
+        # Create scrollable frame with proper padding
         canvas = tk.Canvas(self.content_frame, bg="#1c1c1c", highlightthickness=0)
         scrollbar = tk.Scrollbar(self.content_frame, orient="vertical", command=canvas.yview,
                                 bg="#2c2c2c", troughcolor="#1c1c1c", 
@@ -190,13 +189,13 @@ class App(TKMT.ThemedTKinterFrame):
             lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
         )
         
-        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        canvas.create_window((10, 0), window=scrollable_frame, anchor="nw")  # ADDED: 10px padding
         canvas.configure(yscrollcommand=scrollbar.set)
         
         # Load scripts
         if os.path.exists(self.scripts_folder):
             scripts = [f for f in os.listdir(self.scripts_folder) 
-                      if f.endswith('.py')]
+                    if f.endswith('.py')]
             
             if scripts:
                 for script in scripts:
@@ -210,11 +209,11 @@ class App(TKMT.ThemedTKinterFrame):
                 no_scripts.pack(pady=20)
         else:
             error_label = tk.Label(scrollable_frame, 
-                                 text=f"Scripts folder not found:\n{self.scripts_folder}",
-                                 font=("Arial", 12), bg="#1c1c1c", fg="#dc3545")
+                                text=f"Scripts folder not found:\n{self.scripts_folder}",
+                                font=("Arial", 12), bg="#1c1c1c", fg="#dc3545")
             error_label.pack(pady=20)
         
-        canvas.pack(side="left", fill="both", expand=True)
+        canvas.pack(side="left", fill="both", expand=True, padx=10)  # ADDED: padx=10
         scrollbar.pack(side="right", fill="y")
 
         
