@@ -14,8 +14,9 @@ class ScriptPanel:
         self.process = None
         self.running = False
         
-        # Create panel frame - REMOVED pack() since we'll use grid later
+        # Create panel frame
         self.panel = tk.Frame(parent, bg="#2c2c2c", relief="raised", bd=1)
+        self.panel.pack(fill="x", pady=5, padx=5)
         
         # Script name label
         name_label = tk.Label(self.panel, text=script_name, font=("Arial", 12, "bold"),
@@ -55,7 +56,7 @@ class ScriptPanel:
     def start_script(self):
         if not self.running:
             try:
- 
+                # Start script in a separate thread
                 self.running = True
                 self.process = subprocess.Popen(
                 ['python', self.script_path],
@@ -66,7 +67,7 @@ class ScriptPanel:
                 self.start_btn.config(state="disabled")
                 self.stop_btn.config(state="normal")
                 
-
+                # Monitor process in background
                 threading.Thread(target=self.monitor_process, daemon=True).start()
             except Exception as e:
                 messagebox.showerror("Error", f"Failed to start script:\n{str(e)}")
@@ -132,7 +133,7 @@ class App(TKMT.ThemedTKinterFrame):
 
 
     def create_sidebar(self):
-        sidebar = tk.Frame(self.master, width=35, bg="#1c1c1c")
+        sidebar = tk.Frame(self.master, width=150, bg="#1c1c1c")  # CHANGED: 35 to 150
         sidebar.grid(row=0, column=0, sticky="nsw", padx=(10, 0), pady=0)
         sidebar.grid_propagate(False)
 
@@ -175,45 +176,45 @@ class App(TKMT.ThemedTKinterFrame):
     def show_home(self):
         self.clear_content()
         self.script_panels = []
-        main_frame = tk.Frame(self.content_frame, bg="#1c1c1c")
-        main_frame.pack(fill="both", expand=True, padx=10, pady=10)
         
         
-        for row in range(3):
-            for col in range(3):
-                cell_frame = tk.Frame(main_frame, bg="#1c1c1c", relief="solid", bd=1)
-                cell_frame.grid(row=row, column=col, padx=5, pady=5, sticky="nsew")
-                main_frame.grid_columnconfigure(col, weight=1, uniform="equal")
-                main_frame.grid_rowconfigure(row, weight=1, uniform="equal")
+        canvas = tk.Canvas(self.content_frame, bg="#1c1c1c", highlightthickness=0)
+        scrollbar = tk.Scrollbar(self.content_frame, orient="vertical", command=canvas.yview,
+                                bg="#2c2c2c", troughcolor="#1c1c1c", 
+                                activebackground="#3c3c3c", bd=0)
+        scrollable_frame = tk.Frame(canvas, bg="#1c1c1c")
         
-
+        scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+        )
+        
+        canvas.create_window((10, 0), window=scrollable_frame, anchor="nw")  
+        canvas.configure(yscrollcommand=scrollbar.set)
+        
+        
         if os.path.exists(self.scripts_folder):
-            scripts = [f for f in os.listdir(self.scripts_folder) if f.endswith('.py')]
+            scripts = [f for f in os.listdir(self.scripts_folder) 
+                    if f.endswith('.py')]
             
             if scripts:
-                positions = [(0,0), (0,1), (0,2), (1,0), (1,1), (1,2), (2,0), (2,1), (2,2)]
-                
-                for i, script in enumerate(scripts):
-                    if i >= 9:
-                        break
-                        
+                for script in scripts:
                     script_path = os.path.join(self.scripts_folder, script)
-                    row, col = positions[i]
-                    cell_frame = main_frame.grid_slaves(row=row, column=col)[0]
-                    panel = ScriptPanel(cell_frame, script, script_path)
+                    panel = ScriptPanel(scrollable_frame, script, script_path)
                     self.script_panels.append(panel)
-                    panel.panel.pack(fill="both", expand=True, padx=2, pady=2)
-                        
             else:
-                no_scripts = tk.Label(main_frame, 
-                                    text="No Python scripts found.",
+                no_scripts = tk.Label(scrollable_frame, 
+                                    text="No Python scripts found in the scripts folder.",
                                     font=("Arial", 12), bg="#1c1c1c", fg="gray")
-                no_scripts.grid(row=1, column=0, columnspan=3, pady=20)
+                no_scripts.pack(pady=20)
         else:
-            error_label = tk.Label(main_frame, 
+            error_label = tk.Label(scrollable_frame, 
                                 text=f"Scripts folder not found:\n{self.scripts_folder}",
                                 font=("Arial", 12), bg="#1c1c1c", fg="#dc3545")
-            error_label.grid(row=1, column=0, columnspan=3, pady=20)
+            error_label.pack(pady=20)
+        
+        canvas.pack(side="left", fill="both", expand=True, padx=10)  # ADDED: padx=10
+        scrollbar.pack(side="right", fill="y")
 
         
     def show_settings(self):
